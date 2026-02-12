@@ -1,15 +1,63 @@
-from extractor import extract_markdown_images, extract_markdown_links
-from delimiter import split_nodes_images, text_to_textnodes, split_nodes_links
-from textnode import TextNode, TextType
+import os
+import shutil
+from blocknode import markdown_to_html_node
+from pathlib import Path
+
+
+def copy_static_files(src_path, dest_path: str):
+    if os.path.exists(dest_path):
+        shutil.rmtree(dest_path)
+    recursively_copy_files(src_path, dest_path)
+
+
+def recursively_copy_files(src_path, dest_path):
+    if not os.path.exists(dest_path):
+        os.mkdir(dest_path)
+    if not os.path.exists(src_path):
+        raise ValueError("there is no source directory")
+    files = os.listdir(src_path)
+    for file in files:
+        file_path = os.path.join(src_path, file)
+        if os.path.isfile(file_path):
+            shutil.copy(file_path, dest_path)
+        else:
+            new_dst_path = os.path.join(dest_path, file)
+            recursively_copy_files(file_path, new_dst_path)
+
+
+def extract_title(markdown: str):
+    lines = markdown.split("\n\n")
+    for line in lines:
+        if line.startswith("# "):
+            return line.lstrip("# ").strip()
+    raise Exception("There is no title text")
+
+
+def generate_page_recursive(dir_path_content, template_path, dest_dir_path):
+    dest_path = Path(dest_dir_path)
+    dest_path.mkdir(parents=True, exist_ok=True)
+    dirs = os.listdir(dir_path_content)
+    for dir in dirs:
+        content_path = os.path.join(dir_path_content, dir)
+        if not os.path.isfile(content_path):
+            new_dest_path = os.path.join(dest_dir_path, dir)
+            generate_page_recursive(content_path, template_path, new_dest_path)
+        else:
+            content_file = Path(content_path)
+            md_content = content_file.read_text()
+            template_file = Path(template_path)
+            template_content = template_file.read_text()
+            html_content = markdown_to_html_node(md_content).to_html()
+            title = extract_title(md_content)
+            template_content = template_content.replace("{{ Title }}", title)
+            template_content = template_content.replace("{{ Content }}", html_content)
+            write_file = Path(os.path.join(dest_path, "index.html"))
+            write_file.write_text(template_content)
 
 
 def main():
-    node = TextNode(
-        "This is text with an [first link](https://i.imgur.com/zjjcJKZ.png) and another [second link](https://i.imgur.com/3elNhQu.png)",
-        TextType.TEXT,
-    )
-    new_nodes = split_nodes_links([node])
-    print(new_nodes)
+    copy_static_files("static", "public")
+    generate_page_recursive("content", "template.html", "public")
 
 
 main()
