@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from blocknode import markdown_to_html_node
 from pathlib import Path
@@ -33,7 +34,7 @@ def extract_title(markdown: str):
     raise Exception("There is no title text")
 
 
-def generate_page_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_page_recursive(dir_path_content, template_path, dest_dir_path, base_path):
     dest_path = Path(dest_dir_path)
     dest_path.mkdir(parents=True, exist_ok=True)
     dirs = os.listdir(dir_path_content)
@@ -41,7 +42,9 @@ def generate_page_recursive(dir_path_content, template_path, dest_dir_path):
         content_path = os.path.join(dir_path_content, dir)
         if not os.path.isfile(content_path):
             new_dest_path = os.path.join(dest_dir_path, dir)
-            generate_page_recursive(content_path, template_path, new_dest_path)
+            generate_page_recursive(
+                content_path, template_path, new_dest_path, base_path
+            )
         else:
             content_file = Path(content_path)
             md_content = content_file.read_text()
@@ -51,13 +54,18 @@ def generate_page_recursive(dir_path_content, template_path, dest_dir_path):
             title = extract_title(md_content)
             template_content = template_content.replace("{{ Title }}", title)
             template_content = template_content.replace("{{ Content }}", html_content)
+            template_content = template_content.replace('href="/', f'href="{base_path}')
+            template_content = template_content.replace('src="/', f'src="{base_path}')
             write_file = Path(os.path.join(dest_path, "index.html"))
             write_file.write_text(template_content)
 
 
 def main():
-    copy_static_files("static", "public")
-    generate_page_recursive("content", "template.html", "public")
+    base_path = "/"
+    if len(sys.argv) > 1:
+        base_path = sys.argv[1]
+    copy_static_files("static", "docs")
+    generate_page_recursive("content", "template.html", "public", base_path)
 
 
 main()
