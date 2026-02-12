@@ -54,10 +54,8 @@ def generate_page_recursive(dir_path_content, template_path, dest_dir_path, base
             title = extract_title(md_content)
             template_content = template_content.replace("{{ Title }}", title)
             template_content = template_content.replace("{{ Content }}", html_content)
-            template_content = template_content.replace(
-                'href="/', f'href="{base_path}/'
-            )
-            template_content = template_content.replace('src="/', f'src="{base_path}/')
+            template_content = template_content.replace('href="/', f'href="{base_path}')
+            template_content = template_content.replace('src="/', f'src="{base_path}')
             write_file = Path(os.path.join(dest_path, "index.html"))
             write_file.write_text(template_content)
 
