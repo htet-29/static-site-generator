@@ -1,7 +1,7 @@
 from enum import Enum
-from htmlnode import ParentNode, text_node_to_html_node
-from delimiter import text_to_textnodes
-from textnode import TextNode, TextType
+from htmlnode import ParentNode
+from inline_markdown import text_to_textnodes
+from textnode import TextNode, TextType, text_node_to_html_node
 
 
 class BlockType(Enum):
@@ -9,8 +9,8 @@ class BlockType(Enum):
     HEADING = "heading"
     CODE = "code"
     QUOTE = "quote"
-    U_LIST = "unordered_list"
-    O_LIST = "ordered_list"
+    ULIST = "unordered_list"
+    OLIST = "ordered_list"
 
 
 def markdown_to_blocks(markdown):
@@ -35,14 +35,14 @@ def block_to_block_type(block: str) -> BlockType:
         for line in lines:
             if not line.startswith("- "):
                 return BlockType.PARAGRAPH
-        return BlockType.U_LIST
+        return BlockType.ULIST
     if block.startswith("1. "):
         i = 1
         for line in lines:
             if not line.startswith(f"{i}. "):
                 return BlockType.PARAGRAPH
             i += 1
-        return BlockType.O_LIST
+        return BlockType.OLIST
     return BlockType.PARAGRAPH
 
 
@@ -63,9 +63,9 @@ def block_to_html_node(block):
         return heading_to_html_node(block)
     if block_type == BlockType.CODE:
         return code_to_html_node(block)
-    if block_type == BlockType.O_LIST:
+    if block_type == BlockType.OLIST:
         return olist_to_html_node(block)
-    if block_type == BlockType.U_LIST:
+    if block_type == BlockType.ULIST:
         return ulist_to_html_node(block)
     if block_type == BlockType.QUOTE:
         return quote_to_html_node(block)

@@ -1,6 +1,3 @@
-from textnode import TextType
-
-
 class HTMLNode:
     def __init__(self, tag=None, value=None, children=None, props=None) -> None:
         self.tag = tag
@@ -16,12 +13,8 @@ class HTMLNode:
             return ""
         return "".join([f' {key}="{value}"' for key, value in self.props.items()])
 
-    def __repr__(self) -> str:
-        props = self.props_to_html()
-        if self.children is not None:
-            return f"<{self.tag}{props}>{self.value} {self.children}</{self.tag}>"
-
-        return f"<{self.tag}{props}>{self.value} {self.children}</{self.tag}>"
+    def __repr__(self):
+        return f"HTMLNode({self.tag}, {self.value}, children: {self.children}, {self.props})"
 
 
 class LeafNode(HTMLNode):
@@ -58,21 +51,3 @@ class ParentNode(HTMLNode):
             html += child.to_html()
         html += f"</{self.tag}>"
         return html
-
-
-def text_node_to_html_node(textnode):
-    match textnode.text_type:
-        case TextType.TEXT:
-            return LeafNode(None, textnode.text)
-        case TextType.BOLD:
-            return LeafNode("b", textnode.text)
-        case TextType.ITALIC:
-            return LeafNode("i", textnode.text)
-        case TextType.CODE:
-            return LeafNode("code", textnode.text)
-        case TextType.LINK:
-            return LeafNode("a", textnode.text, {"href": textnode.url})
-        case TextType.IMAGE:
-            return LeafNode("img", "", {"src": textnode.url, "alt": textnode.text})
-        case _:
-            raise Exception("Unkown Text Type")

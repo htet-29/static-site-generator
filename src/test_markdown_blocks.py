@@ -1,16 +1,39 @@
 import unittest
-from blocknode import (
-    markdown_to_blocks,
-    BlockType,
-    block_to_block_type,
+from markdown_blocks import (
     markdown_to_html_node,
+    markdown_to_blocks,
+    block_to_block_type,
+    BlockType,
 )
 
 
-class TestMarkdownToBlocks(unittest.TestCase):
+class TestMarkdownToHTML(unittest.TestCase):
     def test_markdown_to_blocks(self):
         md = """
 This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_markdown_to_blocks_newlines(self):
+        md = """
+This is **bolded** paragraph
+
+
+
 
 This is another paragraph with _italic_ text and `code` here
 This is the same paragraph on a new line
@@ -36,9 +59,9 @@ This is the same paragraph on a new line
         block = "> quote\n> more quote"
         self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
         block = "- list\n- items"
-        self.assertEqual(block_to_block_type(block), BlockType.U_LIST)
+        self.assertEqual(block_to_block_type(block), BlockType.ULIST)
         block = "1. list\n2. items"
-        self.assertEqual(block_to_block_type(block), BlockType.O_LIST)
+        self.assertEqual(block_to_block_type(block), BlockType.OLIST)
         block = "paragraph"
         self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
 
@@ -125,7 +148,7 @@ this is paragraph text
             "<div><blockquote>This is a blockquote block</blockquote><p>this is paragraph text</p></div>",
         )
 
-    def test_code(self):
+    def test_codeblock(self):
         md = """
 ```
 This is text that _should_ remain
